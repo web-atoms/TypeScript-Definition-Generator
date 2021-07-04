@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "File": {
+      "commandName": "Project",
+      "commandLineArgs": "XF D:\\git\\akash\\ns-products\\web-atoms\\WebAtoms.Xamarin.Forms\\PropertyGenerator\\bin\\Debug\\netcoreapp3.1\\Xamarin.Forms.Core.dll"
+    },
+    "Reference": {
+      "commandName": "Project",
+      "commandLineArgs": "XF Xamarin.Forms Xamarin.Forms.Core"
+    }
+
+  }
+}
