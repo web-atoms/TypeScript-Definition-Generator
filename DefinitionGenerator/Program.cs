@@ -10,7 +10,7 @@ namespace DefinitionGenerator
             if(args.Length < 3)
             {
                 Console.WriteLine($"Usage: DefinitionGenerator tsFileName rootClrNameSpace dllFilePath");
-                Console.WriteLine("Example: DefinitionGenerator XF Xamarin.Forms.Core d:/{absolute-path}/Xamarin.Forms.Core.dll");
+                Console.WriteLine("Example: DefinitionGenerator XF http://xamarin.com/schemas/2014/forms d:/{absolute-path}/Xamarin.Forms.Core.dll");
                 Console.WriteLine("Example: DefinitionGenerator WA WebAtoms ../../..{relative-path}/../WebAtoms.XF.dll WA");
                 return;
             }

@@ -4,10 +4,15 @@
       "commandName": "Project",
       "commandLineArgs": "XF D:\\git\\akash\\ns-products\\web-atoms\\WebAtoms.Xamarin.Forms\\PropertyGenerator\\bin\\Debug\\netcoreapp3.1\\Xamarin.Forms.Core.dll"
     },
-    "Reference": {
+    "XF": {
       "commandName": "Project",
-      "commandLineArgs": "XF Xamarin.Forms Xamarin.Forms.Core"
+      "commandLineArgs": "XF http://xamarin.com/schemas/2014/forms Xamarin.Forms.Core"
+    },
+    "XCT": {
+      "commandName": "Project",
+      "commandLineArgs": "XCT http://xamarin.com/schemas/2020/toolkit Xamarin.CommunityToolkit"
     }
+
 
   }
 }
