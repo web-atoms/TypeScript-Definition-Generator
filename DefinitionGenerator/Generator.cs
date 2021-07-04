@@ -234,25 +234,41 @@ namespace DefinitionGenerator
 
             if (type.Assembly == this.Assembly)
             {
-                while (type != null)
+                if(defaultNamespaces.Contains(type.Namespace))
                 {
                     if (names.ContainsKey(type))
                     {
-                        if (type.IsConstructedGenericType)
-                        {
-                            // return type.Name + "$" + string.Join("_", type.GenericTypeArguments.Select(GetTypeName) );
-                            return "RootObject";
-                        }
-                        if (this.name == nsItem.Name && defaultNamespaces.Contains(type.Namespace))
-                        {
-                            return type.Name;
-                        }
-                        break;
+                        return this.name + "." + type.ToClassName();
                     }
-                    if (type.BaseType == null || type.BaseType == typeof(object))
-                        break;
-                    type = type.BaseType;
+                    if (type.IsConstructedGenericType)
+                    {
+                        if (names.ContainsKey(type.GetGenericTypeDefinition()))
+                        {
+                            return this.name + "." + type.GetGenericTypeDefinition().ToClassName();
+                        }
+                    }
                 }
+
+                return "RootObject";
+                //while (type != null)
+                //{
+                //    if (names.ContainsKey(type))
+                //    {
+                //        if (type.IsConstructedGenericType)
+                //        {
+                //            // return type.Name + "$" + string.Join("_", type.GenericTypeArguments.Select(GetTypeName) );
+                //            return "RootObject";
+                //        }
+                //        if (this.name == nsItem.Name && defaultNamespaces.Contains(type.Namespace))
+                //        {
+                //            return type.Name;
+                //        }
+                //        break;
+                //    }
+                //    if (type.BaseType == null || type.BaseType == typeof(object))
+                //        break;
+                //    type = type.BaseType;
+                //}
             }
             // return type.Assembly.GetName().Name + "." + type.Name;
             if (type.Assembly != Assembly)
