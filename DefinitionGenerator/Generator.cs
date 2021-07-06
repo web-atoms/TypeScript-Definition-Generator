@@ -25,6 +25,18 @@ namespace DefinitionGenerator
         private Assembly Assembly;
         private Dictionary<Type, string> names = new Dictionary<Type, string>();
 
+        static Type[] rootTypes = new Type[] {
+                typeof(Xamarin.Forms.BindableObject),
+                typeof(Xamarin.Forms.Element),
+                typeof(Xamarin.Forms.ElementTemplate),
+                typeof(Xamarin.Forms.Color),
+                typeof(Xamarin.Forms.Style),
+                typeof(Xamarin.Forms.StyleSheets.StyleSheet),
+                typeof(Xamarin.Forms.Easing),
+                typeof(Xamarin.Forms.Effect),
+                typeof(Xamarin.Forms.IValueConverter)
+            };
+
         public Generator(string name, string @namespace, string filePath)
         {
             this.name = name;
@@ -183,16 +195,25 @@ namespace DefinitionGenerator
 
             foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance))
             {
-                if(p.PropertyType.IsCollection())
+                var name = p.Name.ToCamelCase();
+                if (p.PropertyType.IsCollection())
                 {
-                    var name = p.Name.ToCamelCase();
                     if (attached.ContainsKey(name))
                         continue;
+                    attached[name] = name;
                     writer.WriteLine($"public static {name}: AttachedNode;");
                     continue;
                 }
 
-                writer.WriteLine($"public {p.Name.ToCamelCase()}: {GetTypeName(p.PropertyType, nsItem)};");
+                writer.WriteLine($"public {name}: {GetTypeName(p.PropertyType, nsItem)};");
+
+                if (rootTypes.Any(t => t.IsAssignableFrom(p.PropertyType)))
+                {
+                    if (attached.ContainsKey(name))
+                        continue;
+                    attached[name] = name;
+                    writer.WriteLine($"public static {name}: AttachedNode;");
+                }
             }
 
 
@@ -323,22 +344,17 @@ import { ColorItem } from ""@web-atoms/core/dist/core/Colors"";
                 this.defaultNamespaces.Add(d.ClrNamespace);
             }
 
+            if(a == typeof(Xamarin.Forms.BindableObject).Assembly)
+            {
+                this.defaultNamespaces.Add("Xamarin.Forms.StyleSheets");
+            }
+
             if(this.defaultNamespaces.Count == 0)
             {
                 this.defaultNamespaces.Add(this.name);
             }
 
-            var rootTypes = new Type[] {
-                typeof(Xamarin.Forms.BindableObject),
-                typeof(Xamarin.Forms.Element),
-                typeof(Xamarin.Forms.ElementTemplate),
-                typeof(Xamarin.Forms.Color),
-                typeof(Xamarin.Forms.Style),
-                typeof(Xamarin.Forms.StyleSheets.StyleSheet),
-                typeof(Xamarin.Forms.Easing),
-                typeof(Xamarin.Forms.Effect),
-                typeof(Xamarin.Forms.IValueConverter)
-            };
+           
 
             foreach(var t in a.ExportedTypes)
             {
