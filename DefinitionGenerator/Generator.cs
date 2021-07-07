@@ -113,25 +113,29 @@ namespace DefinitionGenerator
         {
             if (ns.Types.Count > 0)
             {
+                writer.WriteLine($"ns = \"{ns.FullName}\";");
                 writer.WriteLine($"Object.defineProperties({ns.FullName} as any, {{");
                 writer.Indent++;
                 foreach (var t in ns.Types)
                 {
                     var name = t.ToClassName();
-                    writer.WriteLine($"{name}: {{ ");
-                    writer.Indent++;
-                    writer.WriteLine("configurable: true,");
-                    writer.WriteLine("enumerable: true,");
-                    writer.WriteLine("writable: true,");
-                    writer.WriteLine($"get() {{");
-                    writer.Indent++;
-                    writer.WriteLine($"const t = bridge.getClass(\"{t.AssemblyQualifiedName}\");");
-                    writer.WriteLine($"Object.defineProperty(this, \"{name}\", {{ value: t, enumerable: true, writable: true, configurable: true }})");
-                    writer.WriteLine("return t;");
-                    writer.Indent--;
-                    writer.WriteLine("}");
-                    writer.Indent--;
-                    writer.WriteLine("},");
+                    var nsName = t.Namespace == ns.FullName
+                        ? "ns"
+                        : $"\"{t.Namespace}\"";
+                    writer.WriteLine($"{name}: create(\"{t.Name}\",{nsName}),");
+                    //writer.WriteLine($"{name}: {{ ");
+                    //writer.Indent++;
+                    //writer.WriteLine("configurable: true,");
+                    //writer.WriteLine("enumerable: true,");
+                    //writer.WriteLine($"get() {{");
+                    //writer.Indent++;
+                    //writer.WriteLine($"const t = bridge.getClass(\"{t.AssemblyQualifiedName}\");");
+                    //writer.WriteLine($"Object.defineProperty(this, \"{name}\", {{ value: t, enumerable: true, writable: true, configurable: true }})");
+                    //writer.WriteLine("return t;");
+                    //writer.Indent--;
+                    //writer.WriteLine("}");
+                    //writer.Indent--;
+                    //writer.WriteLine("},");
                 }
                 writer.Indent--;
                 writer.WriteLine("});");
@@ -319,6 +323,25 @@ import { ColorItem } from ""@web-atoms/core/dist/core/Colors"";
             }
 
             writer.WriteLine("declare var bridge: any;");
+            writer.WriteLine($"const assemblyName = `{this.Assembly.FullName}`;");
+            writer.WriteLine($"let ns = ``;");
+            writer.WriteLine(@"function create(name: string, ns: string) {
+    return {
+        configurable: true,
+        enumerable: true,
+        get() {
+            const t = bridge.getClass(`${ns}.${name}, ${assemblyName}`); 
+            Object.defineProperty(this, name, {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: t
+            });
+            return t;
+        }
+    };
+}
+");
 
         }
 
