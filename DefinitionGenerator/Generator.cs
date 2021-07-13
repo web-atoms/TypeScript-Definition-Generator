@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -155,7 +156,7 @@ namespace DefinitionGenerator
             {
                 writer.WriteLine($"export declare class {t.ToClassName()} extends RootObject {{");
             } else {
-                writer.WriteLine($"export declare class {t.ToClassName()} extends {GetTypeName(bt, nsItem)} {{");
+                writer.WriteLine($"export declare class {t.ToClassName()} extends {GetTypeName(bt, nsItem, true)} {{");
             }
             writer.Indent++;
             // expose all static properties...
@@ -193,15 +194,22 @@ namespace DefinitionGenerator
                     writer.WriteLine($"public static {name}: AttachedNode;");
                 } else
                 {
-                    writer.WriteLine($"public static {p.Name.ToCamelCase()}: {GetTypeName(p.FieldType, nsItem)};");
+                    writer.WriteLine($"public static {p.Name.ToCamelCase()}: {GetTypeName(p.FieldType, nsItem, true)};");
                 }
             }
 
             foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance))
             {
+                var eb = p.GetCustomAttribute<EditorBrowsableAttribute>();
+                if (eb?.State == EditorBrowsableState.Never)
+                    continue;
                 var name = p.Name.ToCamelCase();
                 if (p.PropertyType.IsCollection())
                 {
+                    writer.WriteLine("/**");
+                    writer.WriteLine($"* {p.PropertyType.FullName}");
+                    writer.WriteLine("*/");
+                    writer.WriteLine($"public {name}: any;");
                     if (attached.ContainsKey(name))
                         continue;
                     attached[name] = name;
@@ -209,7 +217,10 @@ namespace DefinitionGenerator
                     continue;
                 }
 
-                writer.WriteLine($"public {name}: {GetTypeName(p.PropertyType, nsItem)};");
+                writer.WriteLine("/**");
+                writer.WriteLine($"* {p.PropertyType.FullName}");
+                writer.WriteLine("*/");
+                writer.WriteLine($"public {name}: {GetTypeName(p.PropertyType, nsItem)} | Bind;");
 
                 if (rootTypes.Any(t => t.IsAssignableFrom(p.PropertyType)))
                 {
@@ -225,22 +236,30 @@ namespace DefinitionGenerator
             writer.WriteLine("}");
         }
 
-        private string GetTypeName(Type type, NamespaceItem nsItem)
+        private string GetTypeName(Type type, NamespaceItem nsItem, bool asType = false)
         {
 
             if (type.IsEnum)
             {
-                return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x))) + " | string | number | null | undefined | Bind";
+                if (asType)
+                {
+                    return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x)));
+                }
+                return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x))) + " | string | number | null | undefined";
             }
 
             var t = Type.GetTypeCode(type);
             switch (t)
             {
                 case TypeCode.Boolean:
-                    return "boolean | null | Bind";
+                    if (asType)
+                        return "boolean";
+                    return "boolean | null";
                 case TypeCode.Char:
                 case TypeCode.String:
-                    return "string | null | Bind";
+                    if (asType)
+                        return "string";
+                    return "string | null";
                 case TypeCode.SByte:
                 case TypeCode.Byte:
                 case TypeCode.UInt16:
@@ -252,14 +271,26 @@ namespace DefinitionGenerator
                 case TypeCode.Decimal:
                 case TypeCode.UInt32:
                 case TypeCode.Int16:
-                    return "number | null | Bind";
+                    if (asType)
+                        return "number";
+                    return "number | null";
                 case TypeCode.DateTime:
-                    return "Date | null | Bind";
+                    if (asType)
+                        return "Date";
+                    return "Date | null";
             }
 
             if (type.Assembly == this.Assembly)
             {
-                if(defaultNamespaces.Contains(type.Namespace))
+
+                if (type == typeof(Xamarin.Forms.Color))
+                {
+                    if (asType)
+                        return "XF.Color";
+                    return "XF.Color | ColorItem | string | null";
+                }
+
+                if (defaultNamespaces.Contains(type.Namespace))
                 {
                     if (names.ContainsKey(type))
                     {
@@ -298,6 +329,13 @@ namespace DefinitionGenerator
             // return type.Assembly.GetName().Name + "." + type.Name;
             if (type.Assembly != Assembly)
             {
+                if(type == typeof(Xamarin.Forms.Color))
+                {
+                    if (asType)
+                        return "XF.default.Color";
+                    return "XF.default.Color | ColorItem | string | null";
+                }
+
                 if (type.Namespace == "Xamarin.Forms")
                 {
                     return "XF.default." + type.ToClassName();

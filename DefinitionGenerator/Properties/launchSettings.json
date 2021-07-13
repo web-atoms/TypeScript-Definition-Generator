@@ -7,12 +7,12 @@
     "XF": {
       "commandName": "Project",
       "commandLineArgs": "XF http://xamarin.com/schemas/2014/forms Xamarin.Forms.Core",
-      "workingDirectory": "D:\\git\\akash\\github\\web-atoms\\xf-controls\\src\\clr"
+      "workingDirectory": "D:\\git\\github\\web-atoms\\xf-controls\\src\\clr"
     },
     "XCT": {
       "commandName": "Project",
       "commandLineArgs": "XCT http://xamarin.com/schemas/2020/toolkit Xamarin.CommunityToolkit",
-      "workingDirectory": "D:\\git\\akash\\github\\web-atoms\\xf-controls\\src\\clr"
+      "workingDirectory": "D:\\git\\github\\web-atoms\\xf-controls\\src\\clr"
     }
   }
 }
