@@ -13,6 +13,16 @@
       "commandName": "Project",
       "commandLineArgs": "XCT http://xamarin.com/schemas/2020/toolkit Xamarin.CommunityToolkit",
       "workingDirectory": "D:\\git\\github\\web-atoms\\xf-controls\\src\\clr"
+    },
+    "FFIL": {
+      "commandName": "Project",
+      "commandLineArgs": "FFIL FFImageLoading.Forms FFImageLoading.Forms",
+      "workingDirectory": "D:\\git\\github\\web-atoms\\xf-controls\\src\\clr"
+    },
+    "FFITL": {
+      "commandName": "Project",
+      "commandLineArgs": "FFIL FFImageLoading.Forms FFImageLoading.Forms",
+      "workingDirectory": "D:\\git\\github\\web-atoms\\xf-controls\\src\\clr"
     }
   }
 }
