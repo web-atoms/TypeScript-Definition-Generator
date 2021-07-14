@@ -31,6 +31,10 @@ namespace DefinitionGenerator
                 typeof(Xamarin.Forms.Element),
                 typeof(Xamarin.Forms.ElementTemplate),
                 typeof(Xamarin.Forms.Color),
+                typeof(Xamarin.Forms.Point),
+                typeof(Xamarin.Forms.Rect),
+                typeof(Xamarin.Forms.LayoutOptions),
+                typeof(Xamarin.Forms.Size),
                 typeof(Xamarin.Forms.Style),
                 typeof(Xamarin.Forms.StyleSheets.StyleSheet),
                 typeof(Xamarin.Forms.Easing),
@@ -179,10 +183,20 @@ namespace DefinitionGenerator
             }
 
             // expose all BindableProperty
-            foreach(var p in t.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
+            foreach (var p in t.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
             {
                 if (p.FieldType == typeof(BindableProperty))
                 {
+
+                    //// if it is of type collection or an element...
+                    //var bp = p.GetValue(null) as BindableProperty;
+                    //if (!(bp.ReturnType.IsCollection()
+                    //    || typeof(BindableProperty).IsAssignableFrom(bp.ReturnType)
+                    //    || typeof(Element).IsAssignableFrom(bp.ReturnType)
+                    //    || typeof(ElementTemplate).IsAssignableFrom(bp.ReturnType)))
+                    //    continue;
+
+
                     var name = p.Name.ToCamelCase();
                     if (name.EndsWith("Property"))
                     {
@@ -192,7 +206,8 @@ namespace DefinitionGenerator
                         continue;
                     attached[name] = name;
                     writer.WriteLine($"public static {name}: AttachedNode;");
-                } else
+                }
+                else
                 {
                     writer.WriteLine($"public static {p.Name.ToCamelCase()}: {GetTypeName(p.FieldType, nsItem, true)};");
                 }
@@ -245,7 +260,7 @@ namespace DefinitionGenerator
                 {
                     return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x)));
                 }
-                return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x))) + " | string | number | null | undefined";
+                return string.Join(" | ", type.GetEnumNames().Select(x => JsonSerializer.Serialize(x)));
             }
 
             var t = Type.GetTypeCode(type);
@@ -278,6 +293,41 @@ namespace DefinitionGenerator
                     if (asType)
                         return "Date";
                     return "Date | null";
+            }
+
+            if(!asType)
+            {
+                if (type == typeof(Color))
+                {
+                    if (type.Assembly == this.Assembly)
+                    {
+                        return "XF.Color | ColorItem | string | null";
+                    }
+                    return "XF.default.Color | ColorItem | string | null";
+                }
+
+                if (type == typeof(GridLength))
+                {
+                    return "\"Auto\" | number | string";
+                }
+
+                var tca = type.GetCustomAttribute<Xamarin.Forms.TypeConverterAttribute>();
+                if (tca != null)
+                {
+                    var names = type
+                        .GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.Public)
+                        .Where(x => x.FieldType == type || x.FieldType.IsSubclassOf(type))
+                        .Select(x => JsonSerializer.Serialize(x.Name));
+                    if (!names.Any())
+                    {
+                        return $"/*{type.Name}*/ any";
+                    }
+                    if (type.Assembly == this.Assembly)
+                    {
+                        return string.Join(" | ", names) + $" | XF.{type.Name} | Bind";
+                    }
+                    return string.Join(" | ", names) + $" | XF.default.{type.Name} | Bind";
+                }
             }
 
             if (type.Assembly == this.Assembly)
