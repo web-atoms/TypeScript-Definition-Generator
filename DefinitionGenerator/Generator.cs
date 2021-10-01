@@ -27,6 +27,11 @@ namespace DefinitionGenerator
         private Dictionary<Type, string> names = new Dictionary<Type, string>();
 
         static Type[] rootTypes = new Type[] {
+                typeof(Xamarin.Forms.BindingBase),
+                typeof(Xamarin.Forms.BindingCondition),
+                typeof(Xamarin.Forms.Shapes.Geometry),
+                typeof(Xamarin.Forms.RelativeBindingSource),
+                typeof(Xamarin.Forms.RelativeBindingSourceMode),
                 typeof(Xamarin.Forms.BindableObject),
                 typeof(Xamarin.Forms.Element),
                 typeof(Xamarin.Forms.ElementTemplate),
